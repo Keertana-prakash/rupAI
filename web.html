@@ -1,0 +1,3240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RuPAI - Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <style>
+    /* Global Styles */
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    :root {
+        --primary: #2E86AB;
+        --secondary: #1B5299;
+        --accent: #A23B72;
+        --light: #F8F9FA;
+        --dark: #212529;
+        --success: #4CAF50;
+        --warning: #FF9800;
+        --danger: #F44336;
+        --gray: #6C757D;
+        --light-gray: #E9ECEF;
+        --gradient: linear-gradient(135deg, var(--primary), var(--secondary));
+        --gradient-dark: linear-gradient(135deg, #1a3a5f, #0d1b2a);
+        --gradient-accent: linear-gradient(135deg, var(--accent), #8a2a5d);
+    }
+
+    body {
+        background-color: var(--light);
+        color: var(--dark);
+        line-height: 1.6;
+        overflow-x: hidden;
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        min-height: 100vh;
+        font-size: 16px;
+    }
+
+    .container {
+        width: 90%;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 15px;
+    }
+
+    .btn {
+        display: inline-block;
+        padding: 12px 24px;
+        background: var(--gradient);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 15px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        box-shadow: 0 4px 15px rgba(46, 134, 171, 0.3);
+    }
+
+    .btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 20px rgba(46, 134, 171, 0.4);
+    }
+
+    .btn-outline {
+        background: transparent;
+        border: 2px solid var(--primary);
+        color: var(--primary);
+        box-shadow: none;
+    }
+
+    .btn-outline:hover {
+        background: var(--primary);
+        color: white;
+    }
+
+    .section {
+        padding: 80px 0;
+    }
+
+    .card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+        padding: 25px;
+        margin-bottom: 25px;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        border: 1px solid rgba(0, 0, 0, 0.05);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 5px;
+        background: var(--gradient);
+    }
+
+    .card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.12);
+    }
+
+    /* Dashboard */
+    .dashboard {
+        display: block;
+        padding-top: 80px;
+        min-height: 100vh;
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    }
+
+    .dashboard-header {
+        background: white;
+        padding: 15px 0;
+        box-shadow: 0 2px 15px rgba(0, 0, 0, 0.08);
+        margin-bottom: 25px;
+    }
+
+    .dashboard-nav {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .dashboard-nav-links {
+        display: flex;
+        list-style: none;
+    }
+
+    .dashboard-nav-links li {
+        margin-right: 25px;
+    }
+
+    .dashboard-nav-links a {
+        text-decoration: none;
+        color: var(--dark);
+        font-weight: 600;
+        padding: 8px 0;
+        border-bottom: 2px solid transparent;
+        transition: all 0.3s ease;
+        font-size: 16px;
+    }
+
+    .dashboard-nav-links a:hover,
+    .dashboard-nav-links a.active {
+        color: var(--primary);
+        border-bottom-color: var(--primary);
+    }
+
+    .user-info {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .user-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: var(--gradient);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 16px;
+        box-shadow: 0 4px 10px rgba(46, 134, 171, 0.3);
+        cursor: pointer;
+    }
+
+    .notification-bell {
+        position: relative;
+        cursor: pointer;
+        font-size: 18px;
+        color: var(--gray);
+    }
+
+    .notification-badge {
+        position: absolute;
+        top: -5px;
+        right: -5px;
+        background: var(--danger);
+        color: white;
+        border-radius: 50%;
+        width: 18px;
+        height: 18px;
+        font-size: 11px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .dashboard-content {
+        display: grid;
+        grid-template-columns: 260px 1fr;
+        gap: 25px;
+    }
+
+    .sidebar {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+        height: fit-content;
+        position: sticky;
+        top: 100px;
+    }
+
+    .sidebar-menu {
+        list-style: none;
+    }
+
+    .sidebar-menu li {
+        margin-bottom: 8px;
+    }
+
+    .sidebar-menu a {
+        display: flex;
+        align-items: center;
+        padding: 12px 16px;
+        text-decoration: none;
+        color: var(--dark);
+        border-radius: 8px;
+        transition: all 0.3s ease;
+        font-weight: 500;
+        font-size: 15px;
+    }
+
+    .sidebar-menu a:hover,
+    .sidebar-menu a.active {
+        background: var(--gradient);
+        color: white;
+        transform: translateX(5px);
+    }
+
+    .sidebar-menu i {
+        margin-right: 10px;
+        width: 18px;
+        text-align: center;
+        font-size: 16px;
+    }
+
+    .main-content {
+        background: white;
+        border-radius: 12px;
+        padding: 30px;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+        min-height: 600px;
+    }
+
+    .page {
+        display: none;
+    }
+
+    .page.active {
+        display: block;
+    }
+
+    .page-title {
+        font-size: 28px;
+        margin-bottom: 20px;
+        color: var(--secondary);
+        padding-bottom: 12px;
+        border-bottom: 1px solid var(--light-gray);
+        font-weight: 700;
+    }
+
+    /* Profile Page */
+    .profile-form {
+        max-width: 600px;
+    }
+
+    .profile-info {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        margin-bottom: 25px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid var(--light-gray);
+    }
+
+    .profile-avatar {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        background: var(--gradient);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 28px;
+        font-weight: bold;
+    }
+
+    /* Form Styles */
+    .form-group {
+        margin-bottom: 20px;
+        position: relative;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        color: var(--dark);
+        font-size: 15px;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 12px 16px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        font-size: 15px;
+        transition: border 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .form-control:focus {
+        border-color: var(--primary);
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(46, 134, 171, 0.2);
+    }
+
+    /* Add Expense/Income Page */
+    .expense-form, .income-form {
+        max-width: 700px;
+    }
+
+    .input-methods {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 20px;
+    }
+
+    .method-btn {
+        flex: 1;
+        padding: 15px;
+        background: var(--light-gray);
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        text-align: center;
+        transition: all 0.3s ease;
+        font-weight: 600;
+        font-size: 14px;
+    }
+
+    .method-btn.active {
+        background: var(--gradient);
+        color: white;
+    }
+
+    .voice-input {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 20px;
+        padding: 18px;
+        background: var(--light-gray);
+        border-radius: 8px;
+    }
+
+    .voice-btn {
+        padding: 10px 18px;
+        background: var(--accent);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        font-size: 14px;
+    }
+
+    .voice-btn:hover {
+        background: #8a2a5d;
+    }
+
+    .voice-btn.listening {
+        background: var(--danger);
+        animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+        100% { transform: scale(1); }
+    }
+
+    .receipt-upload {
+        border: 2px dashed #ddd;
+        border-radius: 8px;
+        padding: 35px;
+        text-align: center;
+        margin-bottom: 20px;
+        cursor: pointer;
+        transition: border 0.3s ease;
+        position: relative;
+    }
+
+    .receipt-upload:hover {
+        border-color: var(--primary);
+    }
+
+    .receipt-upload i {
+        font-size: 40px;
+        color: var(--gray);
+        margin-bottom: 12px;
+    }
+
+    .receipt-preview {
+        max-width: 100%;
+        max-height: 180px;
+        margin-top: 12px;
+        display: none;
+    }
+
+    .processing-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(255, 255, 255, 0.9);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        display: none;
+    }
+
+    .spinner {
+        width: 35px;
+        height: 35px;
+        border: 4px solid rgba(46, 134, 171, 0.2);
+        border-left: 4px solid var(--primary);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin-bottom: 12px;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    /* Expense/Income List */
+    .expense-list, .income-list {
+        margin-top: 25px;
+    }
+
+    .expense-item, .income-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 0;
+        border-bottom: 1px solid var(--light-gray);
+    }
+
+    .expense-item:last-child, .income-item:last-child {
+        border-bottom: none;
+    }
+
+    .expense-info, .income-info {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .expense-name, .income-name {
+        font-weight: 600;
+        font-size: 16px;
+    }
+
+    .expense-meta, .income-meta {
+        font-size: 13px;
+        color: var(--gray);
+        margin-top: 4px;
+    }
+
+    .expense-amount {
+        font-weight: 700;
+        font-size: 18px;
+        color: var(--danger);
+    }
+
+    .income-amount {
+        font-weight: 700;
+        font-size: 18px;
+        color: var(--success);
+    }
+
+    .expense-category, .income-category {
+        display: inline-block;
+        padding: 3px 8px;
+        background: var(--light-gray);
+        border-radius: 20px;
+        font-size: 12px;
+        margin-top: 4px;
+    }
+
+    /* Charts */
+    .chart-container {
+        margin-top: 25px;
+        height: 280px;
+        position: relative;
+    }
+
+    /* AI Chatbot */
+    .chatbot-container {
+        max-width: 800px;
+        margin: 0 auto;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    }
+
+    .chatbot-header {
+        background: var(--gradient);
+        color: white;
+        padding: 18px 22px;
+    }
+
+    .chatbot-header h3 {
+        font-size: 18px;
+        margin: 0;
+    }
+
+    .chatbot-messages {
+        height: 380px;
+        overflow-y: auto;
+        padding: 22px;
+        background: var(--light-gray);
+        border-left: 1px solid #ddd;
+        border-right: 1px solid #ddd;
+    }
+
+    .message {
+        margin-bottom: 16px;
+        padding: 12px 16px;
+        border-radius: 12px;
+        max-width: 80%;
+        line-height: 1.5;
+        font-size: 14px;
+    }
+
+    .user-message {
+        background: var(--primary);
+        color: white;
+        margin-left: auto;
+        border-bottom-right-radius: 0;
+    }
+
+    .bot-message {
+        background: white;
+        border: 1px solid #ddd;
+        border-bottom-left-radius: 0;
+    }
+
+    .chatbot-input {
+        display: flex;
+        border: 1px solid #ddd;
+        border-top: none;
+        border-radius: 0 0 12px 12px;
+        overflow: hidden;
+    }
+
+    .chatbot-input input {
+        flex: 1;
+        padding: 15px 18px;
+        border: none;
+        outline: none;
+        font-size: 15px;
+    }
+
+    .chatbot-input button {
+        padding: 0 22px;
+        background: var(--primary);
+        color: white;
+        border: none;
+        cursor: pointer;
+        transition: background 0.3s ease;
+        font-size: 16px;
+    }
+
+    .chatbot-input button:hover {
+        background: var(--secondary);
+    }
+
+    .typing-indicator {
+        display: flex;
+        align-items: center;
+        padding: 8px 12px;
+        color: var(--gray);
+        font-style: italic;
+        font-size: 13px;
+    }
+
+    .typing-dots {
+        display: flex;
+        margin-left: 8px;
+    }
+
+    .typing-dots span {
+        height: 6px;
+        width: 6px;
+        background: var(--gray);
+        border-radius: 50%;
+        display: block;
+        margin: 0 2px;
+        opacity: 0.4;
+        animation: typing 1.4s infinite ease-in-out;
+    }
+
+    .typing-dots span:nth-child(1) { animation-delay: 0s; }
+    .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+    .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+    @keyframes typing {
+        0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+        30% { transform: translateY(-4px); opacity: 1; }
+    }
+
+    /* Bank Connection */
+    .bank-connection {
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    .bank-card {
+        display: flex;
+        align-items: center;
+        padding: 18px;
+        border: 1px solid var(--light-gray);
+        border-radius: 8px;
+        margin-bottom: 16px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .bank-card:hover {
+        border-color: var(--primary);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+    }
+
+    .bank-logo {
+        width: 50px;
+        height: 50px;
+        background: var(--light-gray);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 16px;
+        font-size: 20px;
+        color: var(--primary);
+    }
+
+    .bank-info {
+        flex: 1;
+    }
+
+    .bank-name {
+        font-weight: 600;
+        font-size: 16px;
+        margin-bottom: 4px;
+    }
+
+    .bank-status {
+        font-size: 13px;
+        color: var(--gray);
+    }
+
+    .connected {
+        color: var(--success);
+    }
+
+    /* Notifications */
+    .notification-container {
+        position: fixed;
+        top: 90px;
+        right: 20px;
+        z-index: 1000;
+        max-width: 320px;
+    }
+
+    .notification {
+        background: white;
+        border-radius: 8px;
+        padding: 12px;
+        margin-bottom: 8px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        border-left: 4px solid var(--primary);
+        display: flex;
+        align-items: flex-start;
+        animation: slideIn 0.3s ease;
+    }
+
+    .notification.warning {
+        border-left-color: var(--warning);
+    }
+
+    .notification.danger {
+        border-left-color: var(--danger);
+    }
+
+    .notification.success {
+        border-left-color: var(--success);
+    }
+
+    .notification-icon {
+        margin-right: 8px;
+        font-size: 16px;
+    }
+
+    .notification-content {
+        flex: 1;
+    }
+
+    .notification-title {
+        font-weight: 600;
+        margin-bottom: 4px;
+        font-size: 14px;
+    }
+
+    .notification-message {
+        font-size: 13px;
+        color: var(--gray);
+    }
+
+    .notification-close {
+        background: none;
+        border: none;
+        font-size: 14px;
+        cursor: pointer;
+        color: var(--gray);
+    }
+
+    @keyframes slideIn {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+
+    /* Dashboard Cards */
+    .card h3 {
+        font-size: 20px;
+        margin-bottom: 15px;
+        color: var(--secondary);
+    }
+
+    .card h4 {
+        font-size: 16px;
+        margin-bottom: 8px;
+        color: var(--dark);
+    }
+
+    .card p {
+        font-size: 15px;
+        color: var(--gray);
+        margin-bottom: 15px;
+    }
+
+    /* Financial Summary Cards */
+    .card .card {
+        padding: 20px;
+    }
+
+    .card .card h4 {
+        font-size: 14px;
+        margin-bottom: 8px;
+    }
+
+    .card .card p {
+        font-size: 24px;
+        margin-bottom: 0;
+        font-weight: 700;
+    }
+
+    /* Scanner Specific Styles */
+    .scanner-section {
+        display: none;
+        text-align: center;
+        padding: 20px;
+        background: var(--card-bg);
+        border-radius: 10px;
+        margin: 10px 0;
+        border: 2px dashed var(--primary);
+    }
+
+    .scanner-active {
+        display: block;
+    }
+
+    .scanner-preview {
+        max-width: 100%;
+        max-height: 300px;
+        margin: 15px auto;
+        border-radius: 8px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        display: none;
+    }
+
+    .scanner-results {
+        margin-top: 20px;
+        text-align: left;
+        background: white;
+        padding: 15px;
+        border-radius: 8px;
+        border-left: 4px solid var(--primary);
+        display: none;
+    }
+
+    .extracted-item {
+        padding: 10px;
+        margin: 5px 0;
+        background: var(--light-gray);
+        border-radius: 5px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .scanner-controls {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+        margin-top: 15px;
+    }
+
+    .scanner-btn {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .scanner-btn.primary {
+        background: var(--primary);
+        color: white;
+    }
+
+    .scanner-btn.secondary {
+        background: var(--light-gray);
+        color: var(--dark);
+    }
+
+    .scanner-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    }
+
+    .ocr-progress {
+        margin: 15px 0;
+        text-align: center;
+    }
+
+    .progress-bar {
+        width: 100%;
+        height: 8px;
+        background: var(--light-gray);
+        border-radius: 4px;
+        overflow: hidden;
+        margin: 10px 0;
+    }
+
+    .progress-fill {
+        height: 100%;
+        background: var(--gradient);
+        width: 0%;
+        transition: width 0.3s ease;
+    }
+
+    .extracted-text {
+        background: white;
+        padding: 15px;
+        border-radius: 8px;
+        margin-top: 15px;
+        font-family: monospace;
+        font-size: 12px;
+        max-height: 200px;
+        overflow-y: auto;
+        border: 1px solid var(--light-gray);
+        display: none;
+    }
+
+    /* Responsive Styles */
+    @media (max-width: 992px) {
+        .dashboard-content {
+            grid-template-columns: 1fr;
+        }
+        
+        .sidebar {
+            display: none;
+        }
+        
+        .page-title {
+            font-size: 24px;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .input-methods {
+            flex-direction: column;
+        }
+        
+        .dashboard-nav-links {
+            display: none;
+        }
+        
+        .main-content {
+            padding: 20px;
+        }
+        
+        .card {
+            padding: 20px;
+        }
+        
+        .page-title {
+            font-size: 22px;
+        }
+        
+        .user-info span {
+            display: none;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .container {
+            width: 95%;
+            padding: 0 10px;
+        }
+        
+        .main-content {
+            padding: 15px;
+        }
+        
+        .card {
+            padding: 15px;
+        }
+        
+        .page-title {
+            font-size: 20px;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            font-size: 14px;
+        }
+    }
+</style>
+</head>
+<body>
+    <!-- Notification Container -->
+    <div class="notification-container" id="notification-container"></div>
+
+    <!-- Dashboard -->
+    <section class="dashboard" id="dashboard">
+        <div class="dashboard-header">
+            <div class="container">
+                <div class="dashboard-nav">
+                    <ul class="dashboard-nav-links">
+                        <li><a href="#" class="active">Dashboard</a></li>
+                    </ul>
+                    <div class="user-info">
+                        <div class="notification-bell" id="notification-bell">
+                            <i class="fas fa-bell"></i>
+                            <span class="notification-badge" id="notification-count">0</span>
+                        </div>
+                        <div class="user-avatar" id="user-avatar" data-page="profile">U</div>
+                        <span id="username">User</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="container">
+            <div class="dashboard-content">
+                <div class="sidebar">
+                    <ul class="sidebar-menu">
+                        <li><a href="#" class="active" data-page="dashboard-home"><i class="fas fa-home"></i> Dashboard</a></li>
+                        <li><a href="#" data-page="profile"><i class="fas fa-user"></i> Profile</a></li>
+                        <li><a href="#" data-page="bank-connect"><i class="fas fa-university"></i> Bank Connection</a></li>
+                        <li><a href="#" data-page="add-expense"><i class="fas fa-minus-circle"></i> Add Expense</a></li>
+                        <li><a href="#" data-page="add-income"><i class="fas fa-plus-circle"></i> Add Income</a></li>
+                        <li><a href="#" data-page="expense-history"><i class="fas fa-history"></i> Expense History</a></li>
+                        <li><a href="#" data-page="income-history"><i class="fas fa-rupee-sign"></i> Income History</a></li>
+                        <li><a href="#" data-page="analysis"><i class="fas fa-chart-bar"></i> Analytics</a></li>
+                        <li><a href="#" data-page="ai-chatbot"><i class="fas fa-robot"></i> AI Advisor</a></li>
+                        <li><a href="#" data-page="budget"><i class="fas fa-wallet"></i> Budget</a></li>
+                        <li><a href="#" data-page="reminders"><i class="fas fa-bell"></i> Reminders</a></li>
+                        <li><a href="#" data-page="goals"><i class="fas fa-bullseye"></i> Goals</a></li>
+                    </ul>
+                </div>
+                <div class="main-content">
+                    <!-- Dashboard Home -->
+                    <div class="page active" id="dashboard-home">
+                        <h2 class="page-title">Financial Dashboard</h2>
+                        <div class="card">
+                            <h3>Welcome back, <span id="welcome-user">User</span>!</h3>
+                            <p>Here's a quick overview of your finances for <span id="current-month">October 2023</span>:</p>
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-top: 20px;">
+                                <div class="card">
+                                    <h4>Total Balance</h4>
+                                    <p style="font-size: 1.8rem; color: var(--success); font-weight: 700;" id="total-balance">₹0</p>
+                                </div>
+                                <div class="card">
+                                    <h4>Monthly Expenses</h4>
+                                    <p style="font-size: 1.8rem; color: var(--danger); font-weight: 700;" id="monthly-expenses">₹0</p>
+                                </div>
+                                <div class="card">
+                                    <h4>Monthly Income</h4>
+                                    <p style="font-size: 1.8rem; color: var(--success); font-weight: 700;" id="monthly-income">₹0</p>
+                                </div>
+                                <div class="card">
+                                    <h4>Savings This Month</h4>
+                                    <p style="font-size: 1.8rem; color: var(--success); font-weight: 700;" id="monthly-savings">₹0</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <h3>Recent Expenses</h3>
+                            <div class="expense-list" id="recent-expenses">
+                                <p>No expenses recorded yet.</p>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <h3>Recent Income</h3>
+                            <div class="income-list" id="recent-income">
+                                <p>No income recorded yet.</p>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <h3>Spending by Category</h3>
+                            <div class="chart-container">
+                                <canvas id="dashboard-category-chart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Profile Page -->
+                    <div class="page" id="profile">
+                        <h2 class="page-title">Your Profile</h2>
+                        <div class="card">
+                            <div class="profile-info">
+                                <div class="profile-avatar" id="profile-avatar">U</div>
+                                <div>
+                                    <h3 id="profile-name">User</h3>
+                                    <p id="profile-email">user@example.com</p>
+                                </div>
+                            </div>
+                            <form id="profile-form" class="profile-form">
+                                <div class="form-group">
+                                    <label for="profile-name-input">Full Name</label>
+                                    <input type="text" id="profile-name-input" class="form-control" placeholder="Enter your full name" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="profile-email-input">Email Address</label>
+                                    <input type="email" id="profile-email-input" class="form-control" placeholder="Enter your email" required>
+                                </div>
+                                <button type="submit" class="btn">Update Profile</button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Bank Connection Page -->
+                    <div class="page" id="bank-connect">
+                        <h2 class="page-title">Connect Your Bank Accounts</h2>
+                        <div class="bank-connection">
+                            <div class="card">
+                                <h3>Bank Integration</h3>
+                                <p>Connect to your bank to automatically import transactions. In a real application, this would connect to actual banking APIs.</p>
+                                
+                                <div class="bank-card" data-bank="mock-bank-1">
+                                    <div class="bank-logo">
+                                        <i class="fas fa-university"></i>
+                                    </div>
+                                    <div class="bank-info">
+                                        <div class="bank-name">State Bank of India</div>
+                                        <div class="bank-status" id="bank1-status">Not Connected</div>
+                                    </div>
+                                    <button class="btn" id="bank1-btn">Connect</button>
+                                </div>
+                                
+                                <div class="bank-card" data-bank="mock-bank-2">
+                                    <div class="bank-logo">
+                                        <i class="fas fa-piggy-bank"></i>
+                                    </div>
+                                    <div class="bank-info">
+                                        <div class="bank-name">HDFC Bank</div>
+                                        <div class="bank-status" id="bank2-status">Not Connected</div>
+                                    </div>
+                                    <button class="btn" id="bank2-btn">Connect</button>
+                                </div>
+                                
+                                <div class="bank-card" data-bank="mock-bank-3">
+                                    <div class="bank-logo">
+                                        <i class="fas fa-credit-card"></i>
+                                    </div>
+                                    <div class="bank-info">
+                                        <div class="bank-name">ICICI Bank</div>
+                                        <div class="bank-status" id="bank3-status">Not Connected</div>
+                                    </div>
+                                    <button class="btn" id="bank3-btn">Connect</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Add Expense Page -->
+                    <div class="page" id="add-expense">
+                        <h2 class="page-title">Add New Expense</h2>
+                        <div class="expense-form">
+                            <div class="input-methods">
+                                <button type="button" class="method-btn active" data-method="manual">Manual Entry</button>
+                                <button type="button" class="method-btn" data-method="voice">Voice Input</button>
+                                <button type="button" class="method-btn" data-method="scanner">Scan Receipt</button>
+                            </div>
+
+                            <form id="expense-form">
+                                <div class="form-group">
+                                    <label for="expense-amount">Amount (₹)</label>
+                                    <input type="number" id="expense-amount" class="form-control" placeholder="0.00" step="0.01" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="expense-category">Category</label>
+                                    <select id="expense-category" class="form-control" required>
+                                        <option value="">Select a category</option>
+                                        <option value="food">Food & Dining</option>
+                                        <option value="transport">Transportation</option>
+                                        <option value="shopping">Shopping</option>
+                                        <option value="bills">Bills & Utilities</option>
+                                        <option value="entertainment">Entertainment</option>
+                                        <option value="health">Health & Fitness</option>
+                                        <option value="other">Other</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="expense-description">Description</label>
+                                    <input type="text" id="expense-description" class="form-control" placeholder="Brief description">
+                                </div>
+                                <div class="form-group">
+                                    <label for="expense-date">Date</label>
+                                    <input type="date" id="expense-date" class="form-control" required>
+                                </div>
+
+                                <!-- Voice Input Section -->
+                                <div class="voice-input" id="voice-input-section" style="display: none;">
+                                    <button type="button" class="voice-btn" id="voice-btn">
+                                        <i class="fas fa-microphone"></i> Start Voice Input
+                                    </button>
+                                    <span id="voice-status">Click to record your expense</span>
+                                    <div id="voice-transcript" style="display: none; margin-top: 10px; padding: 10px; background: white; border-radius: 5px;"></div>
+                                </div>
+
+                                <!-- Scanner Section -->
+                                <div class="scanner-section" id="scanner-section">
+                                    <div class="receipt-upload" id="scanner-upload-area">
+                                        <i class="fas fa-camera"></i>
+                                        <p>Click to upload or scan a receipt</p>
+                                        <p style="font-size: 0.9rem; color: var(--gray);">Supports JPG, PNG files</p>
+                                        <input type="file" id="scanner-file" accept="image/*" style="display: none;">
+                                        <img id="scanner-preview" class="scanner-preview" src="" alt="Receipt Preview">
+                                    </div>
+
+                                    <!-- OCR Progress -->
+                                    <div class="ocr-progress" id="ocr-progress" style="display: none;">
+                                        <p>Processing receipt with AI...</p>
+                                        <div class="progress-bar">
+                                            <div class="progress-fill" id="progress-fill"></div>
+                                        </div>
+                                        <span id="progress-status">Initializing...</span>
+                                    </div>
+
+                                    <!-- Extracted Text Preview -->
+                                    <div class="extracted-text" id="extracted-text"></div>
+
+                                    <!-- Scanner Results -->
+                                    <div class="scanner-results" id="scanner-results">
+                                        <h4>Extracted Items</h4>
+                                        <div id="extracted-items"></div>
+                                        <div class="scanner-controls">
+                                            <button type="button" class="scanner-btn secondary" id="cancel-scan">Cancel</button>
+                                            <button type="button" class="scanner-btn primary" id="add-extracted">Add to Expenses</button>
+                                        </div>
+                                    </div>
+
+                                    <div class="processing-overlay" id="scanner-processing-overlay" style="display: none;">
+                                        <div class="spinner"></div>
+                                        <p>Processing receipt...</p>
+                                    </div>
+                                </div>
+
+                                <button type="submit" class="btn" style="width: 100%;">Add Expense</button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Add Income Page -->
+                    <div class="page" id="add-income">
+                        <h2 class="page-title">Add New Income</h2>
+                        <div class="income-form">
+                            <div class="input-methods">
+                                <button type="button" class="method-btn active" data-method="manual">Manual Entry</button>
+                                <button type="button" class="method-btn" data-method="voice">Voice Input</button>
+                                <button type="button" class="method-btn" data-method="scanner">Scan Document</button>
+                            </div>
+
+                            <form id="income-form">
+                                <div class="form-group">
+                                    <label for="income-amount">Amount (₹)</label>
+                                    <input type="number" id="income-amount" class="form-control" placeholder="0.00" step="0.01" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="income-category">Category</label>
+                                    <select id="income-category" class="form-control" required>
+                                        <option value="">Select a category</option>
+                                        <option value="salary">Salary</option>
+                                        <option value="freelance">Freelance</option>
+                                        <option value="investment">Investment</option>
+                                        <option value="business">Business</option>
+                                        <option value="gift">Gift</option>
+                                        <option value="other">Other</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="income-description">Description</label>
+                                    <input type="text" id="income-description" class="form-control" placeholder="Brief description">
+                                </div>
+                                <div class="form-group">
+                                    <label for="income-date">Date</label>
+                                    <input type="date" id="income-date" class="form-control" required>
+                                </div>
+
+                                <!-- Voice Input Section -->
+                                <div class="voice-input" id="income-voice-input-section" style="display: none;">
+                                    <button type="button" class="voice-btn" id="income-voice-btn">
+                                        <i class="fas fa-microphone"></i> Start Voice Input
+                                    </button>
+                                    <span id="income-voice-status">Click to record your income</span>
+                                    <div id="income-voice-transcript" style="display: none; margin-top: 10px; padding: 10px; background: white; border-radius: 5px;"></div>
+                                </div>
+
+                                <!-- Scanner Section for Income -->
+                                <div class="scanner-section" id="income-scanner-section">
+                                    <div class="receipt-upload" id="income-scanner-upload-area">
+                                        <i class="fas fa-file-invoice-dollar"></i>
+                                        <p>Click to upload or scan income document</p>
+                                        <p style="font-size: 0.9rem; color: var(--gray);">Supports JPG, PNG files</p>
+                                        <input type="file" id="income-scanner-file" accept="image/*" style="display: none;">
+                                        <img id="income-scanner-preview" class="scanner-preview" src="" alt="Document Preview">
+                                    </div>
+
+                                    <!-- OCR Progress -->
+                                    <div class="ocr-progress" id="income-ocr-progress" style="display: none;">
+                                        <p>Processing document with AI...</p>
+                                        <div class="progress-bar">
+                                            <div class="progress-fill" id="income-progress-fill"></div>
+                                        </div>
+                                        <span id="income-progress-status">Initializing...</span>
+                                    </div>
+
+                                    <!-- Scanner Results -->
+                                    <div class="scanner-results" id="income-scanner-results">
+                                        <h4>Extracted Information</h4>
+                                        <div id="income-extracted-items"></div>
+                                        <div class="scanner-controls">
+                                            <button type="button" class="scanner-btn secondary" id="income-cancel-scan">Cancel</button>
+                                            <button type="button" class="scanner-btn primary" id="income-add-extracted">Add to Income</button>
+                                        </div>
+                                    </div>
+
+                                    <div class="processing-overlay" id="income-scanner-processing-overlay" style="display: none;">
+                                        <div class="spinner"></div>
+                                        <p>Processing document...</p>
+                                    </div>
+                                </div>
+
+                                <button type="submit" class="btn" style="width: 100%;">Add Income</button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Expense History Page -->
+                    <div class="page" id="expense-history">
+                        <h2 class="page-title">Expense History</h2>
+                        <div class="card">
+                            <h3>All Expenses</h3>
+                            <div class="expense-list" id="all-expenses">
+                                <p>No expenses recorded yet.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Income History Page -->
+                    <div class="page" id="income-history">
+                        <h2 class="page-title">Income History</h2>
+                        <div class="card">
+                            <h3>All Income</h3>
+                            <div class="income-list" id="all-income">
+                                <p>No income recorded yet.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Analytics Page -->
+                    <div class="page" id="analysis">
+                        <h2 class="page-title">Financial Analytics</h2>
+                        <div class="card">
+                            <h3>Spending by Category</h3>
+                            <div class="chart-container">
+                                <canvas id="categoryChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <h3>Monthly Spending Trend</h3>
+                            <div class="chart-container">
+                                <canvas id="monthlyChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <h3>Income vs Expenses</h3>
+                            <div class="chart-container">
+                                <canvas id="incomeExpenseChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- AI Chatbot Page -->
+                    <div class="page" id="ai-chatbot">
+                        <h2 class="page-title">AI Financial Advisor</h2>
+                        <div class="chatbot-container">
+                            <div class="chatbot-header">
+                                <h3><i class="fas fa-robot"></i> FinBot Pro - Your Advanced Financial Assistant</h3>
+                            </div>
+                            <div class="chatbot-messages" id="chatbot-messages">
+                                <div class="message bot-message">
+                                    Hello! I'm FinBot Pro, your advanced AI financial advisor. I can analyze your spending patterns, suggest budgets, provide investment advice, detect anomalies, and help you achieve your financial goals. How can I assist you today?
+                                </div>
+                            </div>
+                            <div class="typing-indicator" id="typing-indicator" style="display: none;">
+                                FinBot is typing
+                                <div class="typing-dots">
+                                    <span></span>
+                                    <span></span>
+                                    <span></span>
+                                </div>
+                            </div>
+                            <div class="chatbot-input">
+                                <input type="text" id="chatbot-input" placeholder="Ask me about budgeting, saving, investing, or analyzing your expenses...">
+                                <button id="send-message"><i class="fas fa-paper-plane"></i></button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Budget Page -->
+                    <div class="page" id="budget">
+                        <h2 class="page-title">Budget Management</h2>
+                        <div class="card">
+                            <h3>Set Your Monthly Budget</h3>
+                            <form id="budget-form">
+                                <div class="form-group">
+                                    <label for="total-budget">Total Monthly Budget (₹)</label>
+                                    <input type="number" id="total-budget" class="form-control" placeholder="Enter your total monthly budget" step="0.01">
+                                </div>
+                                <button type="submit" class="btn">Set Budget</button>
+                            </form>
+                        </div>
+                        <div class="card">
+                            <h3>Budget Progress</h3>
+                            <div id="budget-progress">
+                                <p>Set a budget to see your progress here.</p>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <h3>Budget vs Actual</h3>
+                            <div class="chart-container">
+                                <canvas id="budgetChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Reminders Page -->
+                    <div class="page" id="reminders">
+                        <h2 class="page-title">Reminders & Notifications</h2>
+                        <div class="card">
+                            <h3>Create New Reminder</h3>
+                            <form id="reminder-form">
+                                <div class="form-group">
+                                    <label for="reminder-title">Reminder Title</label>
+                                    <input type="text" id="reminder-title" class="form-control" placeholder="e.g., Pay electricity bill" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="reminder-date">Due Date</label>
+                                    <input type="date" id="reminder-date" class="form-control" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="reminder-amount">Amount (₹)</label>
+                                    <input type="number" id="reminder-amount" class="form-control" placeholder="0.00" step="0.01">
+                                </div>
+                                <button type="submit" class="btn">Create Reminder</button>
+                            </form>
+                        </div>
+                        <div class="card">
+                            <h3>Upcoming Reminders</h3>
+                            <div id="upcoming-reminders">
+                                <p>No reminders set yet.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Goals Page -->
+                    <div class="page" id="goals">
+                        <h2 class="page-title">Financial Goals</h2>
+                        <div class="card">
+                            <h3>Create New Goal</h3>
+                            <form id="goal-form">
+                                <div class="form-group">
+                                    <label for="goal-name">Goal Name</label>
+                                    <input type="text" id="goal-name" class="form-control" placeholder="e.g., Vacation to Goa" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="goal-amount">Target Amount (₹)</label>
+                                    <input type="number" id="goal-amount" class="form-control" placeholder="0.00" step="0.01" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="goal-date">Target Date</label>
+                                    <input type="date" id="goal-date" class="form-control" required>
+                                </div>
+                                <button type="submit" class="btn">Create Goal</button>
+                            </form>
+                        </div>
+                        <div class="card">
+                            <h3>Your Goals</h3>
+                            <div id="goals-list">
+                                <p>No goals set yet. Create your first financial goal!</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        // Global variables
+        let expenses = JSON.parse(localStorage.getItem('expenses')) || [];
+        let income = JSON.parse(localStorage.getItem('income')) || [];
+        let bankAccounts = JSON.parse(localStorage.getItem('bankAccounts')) || [
+            { id: 'mock-bank-1', name: 'State Bank of India', connected: false },
+            { id: 'mock-bank-2', name: 'HDFC Bank', connected: false },
+            { id: 'mock-bank-3', name: 'ICICI Bank', connected: false }
+        ];
+        let goals = JSON.parse(localStorage.getItem('goals')) || [];
+        let reminders = JSON.parse(localStorage.getItem('reminders')) || [];
+        let budget = JSON.parse(localStorage.getItem('budget')) || { total: 0 };
+        let notifications = JSON.parse(localStorage.getItem('notifications')) || [];
+        let charts = {};
+        let currentUser = JSON.parse(localStorage.getItem('currentUser')) || { name: 'User', email: 'user@example.com' };
+        
+        // Scanner functionality
+        let extractedExpenses = [];
+        let extractedIncome = [];
+
+        // Page Navigation
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set current date for forms
+            const today = new Date();
+            document.getElementById('expense-date').valueAsDate = today;
+            document.getElementById('income-date').valueAsDate = today;
+            document.getElementById('reminder-date').valueAsDate = today;
+            
+            // Set goal date to 3 months from now
+            const goalDate = new Date();
+            goalDate.setMonth(goalDate.getMonth() + 3);
+            document.getElementById('goal-date').valueAsDate = goalDate;
+            
+            // Set current month
+            const monthNames = ["January", "February", "March", "April", "May", "June",
+                "July", "August", "September", "October", "November", "December"
+            ];
+            document.getElementById('current-month').textContent = `${monthNames[today.getMonth()]} ${today.getFullYear()}`;
+            
+            // Update user info
+            updateUserInfo();
+            
+            // Dashboard navigation
+            const sidebarLinks = document.querySelectorAll('.sidebar-menu a');
+            sidebarLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    // Remove active class from all links
+                    sidebarLinks.forEach(l => l.classList.remove('active'));
+                    
+                    // Add active class to clicked link
+                    this.classList.add('active');
+                    
+                    // Hide all pages
+                    const pages = document.querySelectorAll('.page');
+                    pages.forEach(page => page.classList.remove('active'));
+                    
+                    // Show the selected page
+                    const pageId = this.getAttribute('data-page');
+                    document.getElementById(pageId).classList.add('active');
+                    
+                    // Initialize specific page content
+                    if (pageId === 'analysis') {
+                        initializeCharts();
+                    } else if (pageId === 'budget') {
+                        updateBudgetProgress();
+                        initializeBudgetChart();
+                    } else if (pageId === 'reminders') {
+                        updateReminders();
+                    } else if (pageId === 'goals') {
+                        updateGoals();
+                    } else if (pageId === 'bank-connect') {
+                        updateBankStatus();
+                    } else if (pageId === 'income-history') {
+                        updateIncomeHistory();
+                    } else if (pageId === 'profile') {
+                        loadProfileData();
+                    }
+                });
+            });
+
+            // Profile avatar click
+            document.getElementById('user-avatar').addEventListener('click', function() {
+                // Navigate to profile page
+                sidebarLinks.forEach(l => l.classList.remove('active'));
+                document.querySelector('[data-page="profile"]').classList.add('active');
+                
+                const pages = document.querySelectorAll('.page');
+                pages.forEach(page => page.classList.remove('active'));
+                document.getElementById('profile').classList.add('active');
+                
+                loadProfileData();
+            });
+
+            // Input method selection for expense
+            const methodButtons = document.querySelectorAll('#add-expense .method-btn');
+            methodButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    methodButtons.forEach(btn => btn.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    const method = this.getAttribute('data-method');
+                    
+                    // Show/hide relevant sections based on method
+                    if (method === 'voice') {
+                        document.getElementById('voice-input-section').style.display = 'flex';
+                        document.getElementById('scanner-section').style.display = 'none';
+                    } else if (method === 'scanner') {
+                        document.getElementById('voice-input-section').style.display = 'none';
+                        document.getElementById('scanner-section').style.display = 'block';
+                    } else {
+                        document.getElementById('voice-input-section').style.display = 'none';
+                        document.getElementById('scanner-section').style.display = 'none';
+                    }
+                });
+            });
+
+            // Input method selection for income
+            const incomeMethodButtons = document.querySelectorAll('#add-income .method-btn');
+            incomeMethodButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    incomeMethodButtons.forEach(btn => btn.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    const method = this.getAttribute('data-method');
+                    
+                    // Show/hide relevant sections based on method
+                    if (method === 'voice') {
+                        document.getElementById('income-voice-input-section').style.display = 'flex';
+                        document.getElementById('income-scanner-section').style.display = 'none';
+                    } else if (method === 'scanner') {
+                        document.getElementById('income-voice-input-section').style.display = 'none';
+                        document.getElementById('income-scanner-section').style.display = 'block';
+                    } else {
+                        document.getElementById('income-voice-input-section').style.display = 'none';
+                        document.getElementById('income-scanner-section').style.display = 'none';
+                    }
+                });
+            });
+
+            // Scanner file upload for expense
+            document.getElementById('scanner-upload-area').addEventListener('click', function() {
+                document.getElementById('scanner-file').click();
+            });
+
+            document.getElementById('scanner-file').addEventListener('change', function(e) {
+                if (e.target.files.length > 0) {
+                    processReceiptWithOCR(e.target.files[0], 'expense');
+                }
+            });
+
+            // Scanner file upload for income
+            document.getElementById('income-scanner-upload-area').addEventListener('click', function() {
+                document.getElementById('income-scanner-file').click();
+            });
+
+            document.getElementById('income-scanner-file').addEventListener('change', function(e) {
+                if (e.target.files.length > 0) {
+                    processReceiptWithOCR(e.target.files[0], 'income');
+                }
+            });
+
+            // Cancel scan buttons
+            document.getElementById('cancel-scan').addEventListener('click', function() {
+                resetScanner('expense');
+            });
+
+            document.getElementById('income-cancel-scan').addEventListener('click', function() {
+                resetScanner('income');
+            });
+
+            // Add extracted items buttons
+            document.getElementById('add-extracted').addEventListener('click', function() {
+                addExtractedExpenses();
+            });
+
+            document.getElementById('income-add-extracted').addEventListener('click', function() {
+                addExtractedIncome();
+            });
+
+            // Expense form submission
+            document.getElementById('expense-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const amount = parseFloat(document.getElementById('expense-amount').value);
+                const category = document.getElementById('expense-category').value;
+                const description = document.getElementById('expense-description').value;
+                const date = document.getElementById('expense-date').value;
+                
+                if (!amount || !category || !date) {
+                    alert('Please fill in all required fields');
+                    return;
+                }
+                
+                // Create expense object
+                const expense = {
+                    id: Date.now(),
+                    amount: amount,
+                    category: category,
+                    description: description,
+                    date: date,
+                    timestamp: new Date().toISOString()
+                };
+                
+                // Add to expenses array
+                expenses.push(expense);
+                
+                // Save to localStorage
+                localStorage.setItem('expenses', JSON.stringify(expenses));
+                
+                // Update UI
+                updateDashboard();
+                updateExpenseHistory();
+                
+                // Check for budget alerts
+                checkBudgetAlerts();
+                
+                // Check for unusual spending
+                checkUnusualSpending(expense);
+                
+                // Reset form
+                this.reset();
+                document.getElementById('expense-date').valueAsDate = new Date();
+                
+                // Show success message
+                showNotification('success', 'Expense Added', `Expense of ₹${amount.toFixed(2)} added successfully!`);
+            });
+
+            // Income form submission
+            document.getElementById('income-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const amount = parseFloat(document.getElementById('income-amount').value);
+                const category = document.getElementById('income-category').value;
+                const description = document.getElementById('income-description').value;
+                const date = document.getElementById('income-date').value;
+                
+                if (!amount || !category || !date) {
+                    alert('Please fill in all required fields');
+                    return;
+                }
+                
+                // Create income object
+                const incomeItem = {
+                    id: Date.now(),
+                    amount: amount,
+                    category: category,
+                    description: description,
+                    date: date,
+                    timestamp: new Date().toISOString()
+                };
+                
+                // Add to income array
+                income.push(incomeItem);
+                
+                // Save to localStorage
+                localStorage.setItem('income', JSON.stringify(income));
+                
+                // Update UI
+                updateDashboard();
+                updateIncomeHistory();
+                
+                // Reset form
+                this.reset();
+                document.getElementById('income-date').valueAsDate = new Date();
+                
+                // Show success message
+                showNotification('success', 'Income Added', `Income of ₹${amount.toFixed(2)} added successfully!`);
+            });
+
+            // Profile form submission
+            document.getElementById('profile-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const name = document.getElementById('profile-name-input').value;
+                const email = document.getElementById('profile-email-input').value;
+                
+                if (!name || !email) {
+                    alert('Please fill in all required fields');
+                    return;
+                }
+                
+                // Update user data
+                currentUser.name = name;
+                currentUser.email = email;
+                localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                
+                // Update UI
+                updateUserInfo();
+                
+                // Show success message
+                showNotification('success', 'Profile Updated', 'Your profile has been updated successfully!');
+            });
+
+            // Budget form submission
+            document.getElementById('budget-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const totalBudget = parseFloat(document.getElementById('total-budget').value);
+                
+                if (!totalBudget) {
+                    alert('Please enter a budget amount');
+                    return;
+                }
+                
+                // Update budget
+                budget.total = totalBudget;
+                localStorage.setItem('budget', JSON.stringify(budget));
+                
+                // Update UI
+                updateBudgetProgress();
+                initializeBudgetChart();
+                
+                // Reset form
+                this.reset();
+                
+                // Show success message
+                showNotification('success', 'Budget Set', `Monthly budget of ₹${totalBudget.toFixed(2)} set successfully!`);
+            });
+
+            // Reminder form submission
+            document.getElementById('reminder-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const title = document.getElementById('reminder-title').value;
+                const date = document.getElementById('reminder-date').value;
+                const amount = parseFloat(document.getElementById('reminder-amount').value) || 0;
+                
+                if (!title || !date) {
+                    alert('Please fill in all required fields');
+                    return;
+                }
+                
+                // Create reminder object
+                const reminder = {
+                    id: Date.now(),
+                    title: title,
+                    date: date,
+                    amount: amount,
+                    completed: false,
+                    createdAt: new Date().toISOString()
+                };
+                
+                // Add to reminders array
+                reminders.push(reminder);
+                
+                // Save to localStorage
+                localStorage.setItem('reminders', JSON.stringify(reminders));
+                
+                // Update UI
+                updateReminders();
+                
+                // Reset form
+                this.reset();
+                document.getElementById('reminder-date').valueAsDate = new Date();
+                
+                // Show success message
+                showNotification('success', 'Reminder Created', `Reminder "${title}" created successfully!`);
+            });
+
+            // Goal form submission
+            document.getElementById('goal-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const name = document.getElementById('goal-name').value;
+                const targetAmount = parseFloat(document.getElementById('goal-amount').value);
+                const targetDate = document.getElementById('goal-date').value;
+                
+                if (!name || !targetAmount || !targetDate) {
+                    alert('Please fill in all required fields');
+                    return;
+                }
+                
+                // Create goal object
+                const goal = {
+                    id: Date.now(),
+                    name: name,
+                    targetAmount: targetAmount,
+                    targetDate: targetDate,
+                    currentAmount: 0,
+                    createdAt: new Date().toISOString()
+                };
+                
+                // Add to goals array
+                goals.push(goal);
+                
+                // Save to localStorage
+                localStorage.setItem('goals', JSON.stringify(goals));
+                
+                // Update UI
+                updateGoals();
+                
+                // Reset form
+                this.reset();
+                document.getElementById('goal-date').valueAsDate = goalDate;
+                
+                // Show success message
+                showNotification('success', 'Goal Created', `Goal "${name}" created successfully!`);
+            });
+
+            // Bank connection buttons
+            document.getElementById('bank1-btn').addEventListener('click', function() {
+                toggleBankConnection('mock-bank-1');
+            });
+            
+            document.getElementById('bank2-btn').addEventListener('click', function() {
+                toggleBankConnection('mock-bank-2');
+            });
+            
+            document.getElementById('bank3-btn').addEventListener('click', function() {
+                toggleBankConnection('mock-bank-3');
+            });
+
+            // Voice input for expense
+            document.getElementById('voice-btn').addEventListener('click', function() {
+                startVoiceInput('expense');
+            });
+
+            // Voice input for income
+            document.getElementById('income-voice-btn').addEventListener('click', function() {
+                startVoiceInput('income');
+            });
+
+            // Initialize dashboard
+            updateDashboard();
+            updateExpenseHistory();
+            updateIncomeHistory();
+            updateGoals();
+            updateReminders();
+            updateBudgetProgress();
+            updateBankStatus();
+            
+            // Initialize chatbot
+            initializeChatbot();
+            
+            // Show welcome notification
+            setTimeout(() => {
+                showNotification('success', 'Welcome to RuPAI!', 'Your personal finance journey starts here.');
+            }, 1000);
+        });
+
+        // Scanner Functions
+        async function processReceiptWithOCR(file, type) {
+            const isExpense = type === 'expense';
+            const preview = isExpense ? document.getElementById('scanner-preview') : document.getElementById('income-scanner-preview');
+            const progressSection = isExpense ? document.getElementById('ocr-progress') : document.getElementById('income-ocr-progress');
+            const progressFill = isExpense ? document.getElementById('progress-fill') : document.getElementById('income-progress-fill');
+            const progressStatus = isExpense ? document.getElementById('progress-status') : document.getElementById('income-progress-status');
+            const extractedText = isExpense ? document.getElementById('extracted-text') : null;
+            const scannerResults = isExpense ? document.getElementById('scanner-results') : document.getElementById('income-scanner-results');
+
+            // Show preview
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                preview.src = e.target.result;
+                preview.style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+
+            // Show progress section
+            progressSection.style.display = 'block';
+            scannerResults.style.display = 'none';
+            if (extractedText) extractedText.style.display = 'none';
+
+            try {
+                // Initialize Tesseract
+                const worker = await Tesseract.createWorker('eng');
+
+                // Update progress
+                progressStatus.textContent = 'Processing image...';
+                progressFill.style.width = '30%';
+
+                await worker.initialize('eng');
+                progressFill.style.width = '60%';
+                progressStatus.textContent = 'Recognizing text...';
+
+                // Perform OCR
+                const { data: { text, confidence } } = await worker.recognize(file);
+                
+                progressFill.style.width = '90%';
+                progressStatus.textContent = 'Analyzing content...';
+
+                // Process extracted text
+                const processedData = processExtractedText(text, type);
+                
+                progressFill.style.width = '100%';
+                progressStatus.textContent = 'Complete!';
+
+                // Show results
+                if (isExpense) {
+                    displayExtractedItems(processedData);
+                    showExtractedText(text, confidence);
+                } else {
+                    displayExtractedIncome(processedData);
+                }
+
+                // Terminate worker
+                await worker.terminate();
+
+            } catch (error) {
+                console.error('OCR Error:', error);
+                progressStatus.textContent = 'Error processing document';
+                showNotification('danger', 'OCR Error', 'Failed to process document. Please try again.');
+            }
+        }
+
+        function processExtractedText(text, type) {
+            console.log('Raw OCR Text:', text);
+            
+            const lines = text.split('\n').filter(line => line.trim().length > 0);
+            const items = [];
+            let total = 0;
+            let merchant = type === 'expense' ? 'Unknown Store' : 'Unknown Source';
+            let date = new Date().toISOString().split('T')[0];
+
+            // Common patterns for receipt parsing
+            const amountPattern = /(\d+[.,]\d{2})/g;
+            const datePattern = /(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})/;
+            const totalPattern = /total.*?(\d+[.,]\d{2})/i;
+            const subtotalPattern = /sub.*?total.*?(\d+[.,]\d{2})/i;
+
+            // Extract merchant/source name (usually first few lines)
+            if (lines.length > 0) {
+                merchant = lines[0].trim();
+            }
+
+            // Extract date
+            for (const line of lines) {
+                const dateMatch = line.match(datePattern);
+                if (dateMatch) {
+                    date = formatDate(dateMatch[1]);
+                    break;
+                }
+            }
+
+            // Extract total
+            for (const line of lines) {
+                const totalMatch = line.toLowerCase().match(totalPattern);
+                if (totalMatch) {
+                    total = parseFloat(totalMatch[1].replace(',', '.'));
+                    break;
+                }
+            }
+
+            // If no total found, look for subtotal
+            if (total === 0) {
+                for (const line of lines) {
+                    const subtotalMatch = line.toLowerCase().match(subtotalPattern);
+                    if (subtotalMatch) {
+                        total = parseFloat(subtotalMatch[1].replace(',', '.'));
+                        break;
+                    }
+                }
+            }
+
+            // For expenses, extract individual items
+            if (type === 'expense') {
+                for (let i = 0; i < lines.length; i++) {
+                    const line = lines[i];
+                    const amounts = line.match(amountPattern);
+                    
+                    if (amounts && amounts.length > 0) {
+                        const amount = parseFloat(amounts[amounts.length - 1].replace(',', '.'));
+                        
+                        // Skip if this looks like a total line
+                        if (line.toLowerCase().includes('total') || 
+                            line.toLowerCase().includes('subtotal') ||
+                            line.toLowerCase().includes('tax') ||
+                            line.toLowerCase().includes('balance')) {
+                            continue;
+                        }
+
+                        // Valid item amount (between 0.01 and 10000)
+                        if (amount > 0.01 && amount < 10000) {
+                            const itemName = line.replace(amountPattern, '').trim();
+                            
+                            if (itemName && itemName.length > 2 && !itemName.toLowerCase().includes('total')) {
+                                items.push({
+                                    name: itemName.substring(0, 50), // Limit name length
+                                    price: amount,
+                                    category: categorizeItem(itemName)
+                                });
+                            }
+                        }
+                    }
+                }
+
+                // If no items found but we have a total, create a general item
+                if (items.length === 0 && total > 0) {
+                    items.push({
+                        name: 'General Purchase',
+                        price: total,
+                        category: 'shopping'
+                    });
+                }
+
+                // If multiple items but no total, calculate total
+                if (total === 0 && items.length > 0) {
+                    total = items.reduce((sum, item) => sum + item.price, 0);
+                }
+            } else {
+                // For income, just use the total as a single item
+                if (total > 0) {
+                    items.push({
+                        name: 'Income Document',
+                        price: total,
+                        category: categorizeIncome(merchant)
+                    });
+                }
+            }
+
+            return {
+                items: items,
+                total: total,
+                merchant: merchant,
+                date: date,
+                rawText: text
+            };
+        }
+
+        function categorizeItem(itemName) {
+            const name = itemName.toLowerCase();
+            
+            if (name.includes('food') || name.includes('restaurant') || name.includes('cafe') || 
+                name.includes('meal') || name.includes('grocery') || name.includes('supermarket')) {
+                return 'food';
+            } else if (name.includes('fuel') || name.includes('petrol') || name.includes('diesel') ||
+                      name.includes('transport') || name.includes('bus') || name.includes('train') ||
+                      name.includes('taxi') || name.includes('uber') || name.includes('auto')) {
+                return 'transport';
+            } else if (name.includes('medicine') || name.includes('medical') || name.includes('hospital') ||
+                      name.includes('clinic') || name.includes('doctor') || name.includes('pharmacy')) {
+                return 'health';
+            } else if (name.includes('movie') || name.includes('cinema') || name.includes('entertainment') ||
+                      name.includes('game') || name.includes('streaming') || name.includes('netflix')) {
+                return 'entertainment';
+            } else if (name.includes('bill') || name.includes('electricity') || name.includes('water') ||
+                      name.includes('internet') || name.includes('mobile') || name.includes('utility')) {
+                return 'bills';
+            } else {
+                return 'shopping';
+            }
+        }
+
+        function categorizeIncome(source) {
+            const name = source.toLowerCase();
+            
+            if (name.includes('salary') || name.includes('payroll') || name.includes('company')) {
+                return 'salary';
+            } else if (name.includes('freelance') || name.includes('contract') || name.includes('client')) {
+                return 'freelance';
+            } else if (name.includes('investment') || name.includes('dividend') || name.includes('stock') ||
+                      name.includes('mutual') || name.includes('fund')) {
+                return 'investment';
+            } else if (name.includes('business') || name.includes('enterprise') || name.includes('venture')) {
+                return 'business';
+            } else if (name.includes('gift') || name.includes('bonus') || name.includes('reward')) {
+                return 'gift';
+            } else {
+                return 'other';
+            }
+        }
+
+        function formatDate(dateString) {
+            // Simple date formatting - in real app, use more robust parsing
+            try {
+                const date = new Date(dateString);
+                if (!isNaN(date.getTime())) {
+                    return date.toISOString().split('T')[0];
+                }
+            } catch (e) {
+                console.error('Date parsing error:', e);
+            }
+            return new Date().toISOString().split('T')[0];
+        }
+
+        function displayExtractedItems(data) {
+            const itemsContainer = document.getElementById('extracted-items');
+            const scannerResults = document.getElementById('scanner-results');
+            
+            itemsContainer.innerHTML = '';
+            extractedExpenses = [];
+
+            if (data.items.length === 0) {
+                itemsContainer.innerHTML = '<p>No items could be extracted. Please try manual entry.</p>';
+                return;
+            }
+
+            data.items.forEach((item, index) => {
+                const itemElement = document.createElement('div');
+                itemElement.className = 'extracted-item';
+                itemElement.innerHTML = `
+                    <div>
+                        <strong>${item.name}</strong>
+                        <div style="font-size: 0.8rem; color: var(--gray);">${item.category}</div>
+                    </div>
+                    <div style="font-weight: bold; color: var(--danger);">₹${item.price.toFixed(2)}</div>
+                `;
+                itemsContainer.appendChild(itemElement);
+
+                // Store for later use
+                extractedExpenses.push({
+                    amount: item.price,
+                    category: item.category,
+                    description: `${item.name} - ${data.merchant}`,
+                    date: data.date
+                });
+            });
+
+            // Show total
+            const totalElement = document.createElement('div');
+            totalElement.style.cssText = 'margin-top: 15px; padding: 10px; background: var(--primary); color: white; border-radius: 5px; text-align: center;';
+            totalElement.innerHTML = `<strong>Total: ₹${data.total.toFixed(2)}</strong>`;
+            itemsContainer.appendChild(totalElement);
+
+            scannerResults.style.display = 'block';
+        }
+
+        function displayExtractedIncome(data) {
+            const itemsContainer = document.getElementById('income-extracted-items');
+            const scannerResults = document.getElementById('income-scanner-results');
+            
+            itemsContainer.innerHTML = '';
+            extractedIncome = [];
+
+            if (data.items.length === 0) {
+                itemsContainer.innerHTML = '<p>No income information could be extracted. Please try manual entry.</p>';
+                return;
+            }
+
+            data.items.forEach((item, index) => {
+                const itemElement = document.createElement('div');
+                itemElement.className = 'extracted-item';
+                itemElement.innerHTML = `
+                    <div>
+                        <strong>${item.name}</strong>
+                        <div style="font-size: 0.8rem; color: var(--gray);">${item.category}</div>
+                    </div>
+                    <div style="font-weight: bold; color: var(--success);">₹${item.price.toFixed(2)}</div>
+                `;
+                itemsContainer.appendChild(itemElement);
+
+                // Store for later use
+                extractedIncome.push({
+                    amount: item.price,
+                    category: item.category,
+                    description: `${item.name} - ${data.merchant}`,
+                    date: data.date
+                });
+            });
+
+            scannerResults.style.display = 'block';
+        }
+
+        function showExtractedText(text, confidence) {
+            const extractedText = document.getElementById('extracted-text');
+            extractedText.innerHTML = `
+                <div style="display: flex; justify-content: between; margin-bottom: 10px;">
+                    <strong>Raw Text (Confidence: ${(confidence * 100).toFixed(1)}%)</strong>
+                    <button onclick="toggleTextPreview()" class="scanner-btn secondary" style="padding: 5px 10px; font-size: 0.8rem;">
+                        Toggle Preview
+                    </button>
+                </div>
+                <div id="text-preview" style="display: none;">${text.replace(/\n/g, '<br>')}</div>
+            `;
+            extractedText.style.display = 'block';
+        }
+
+        function toggleTextPreview() {
+            const preview = document.getElementById('text-preview');
+            preview.style.display = preview.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function addExtractedExpenses() {
+            if (extractedExpenses.length === 0) {
+                showNotification('warning', 'No Items', 'No items to add. Please scan a receipt first.');
+                return;
+            }
+
+            let addedCount = 0;
+            extractedExpenses.forEach(expense => {
+                // Create expense object
+                const expenseObj = {
+                    id: Date.now() + Math.random(),
+                    amount: expense.amount,
+                    category: expense.category,
+                    description: expense.description,
+                    date: expense.date,
+                    timestamp: new Date().toISOString(),
+                    source: 'receipt_scan'
+                };
+
+                // Add to expenses array
+                expenses.push(expenseObj);
+                addedCount++;
+            });
+
+            // Save to localStorage
+            localStorage.setItem('expenses', JSON.stringify(expenses));
+
+            // Update UI
+            updateDashboard();
+            updateExpenseHistory();
+
+            // Show success message
+            showNotification('success', 'Expenses Added', `${addedCount} items added from receipt scan!`);
+
+            // Reset scanner
+            resetScanner('expense');
+
+            // Switch back to manual mode
+            document.querySelector('#add-expense [data-method="manual"]').click();
+        }
+
+        function addExtractedIncome() {
+            if (extractedIncome.length === 0) {
+                showNotification('warning', 'No Income', 'No income information to add. Please scan a document first.');
+                return;
+            }
+
+            let addedCount = 0;
+            extractedIncome.forEach(incomeItem => {
+                // Create income object
+                const incomeObj = {
+                    id: Date.now() + Math.random(),
+                    amount: incomeItem.amount,
+                    category: incomeItem.category,
+                    description: incomeItem.description,
+                    date: incomeItem.date,
+                    timestamp: new Date().toISOString(),
+                    source: 'document_scan'
+                };
+
+                // Add to income array
+                income.push(incomeObj);
+                addedCount++;
+            });
+
+            // Save to localStorage
+            localStorage.setItem('income', JSON.stringify(income));
+
+            // Update UI
+            updateDashboard();
+            updateIncomeHistory();
+
+            // Show success message
+            showNotification('success', 'Income Added', `${addedCount} income entries added from document scan!`);
+
+            // Reset scanner
+            resetScanner('income');
+
+            // Switch back to manual mode
+            document.querySelector('#add-income [data-method="manual"]').click();
+        }
+
+        function resetScanner(type) {
+            const isExpense = type === 'expense';
+            const fileInput = isExpense ? document.getElementById('scanner-file') : document.getElementById('income-scanner-file');
+            const preview = isExpense ? document.getElementById('scanner-preview') : document.getElementById('income-scanner-preview');
+            const progressSection = isExpense ? document.getElementById('ocr-progress') : document.getElementById('income-ocr-progress');
+            const scannerResults = isExpense ? document.getElementById('scanner-results') : document.getElementById('income-scanner-results');
+            const extractedText = isExpense ? document.getElementById('extracted-text') : null;
+            const progressFill = isExpense ? document.getElementById('progress-fill') : document.getElementById('income-progress-fill');
+
+            fileInput.value = '';
+            preview.style.display = 'none';
+            progressSection.style.display = 'none';
+            scannerResults.style.display = 'none';
+            if (extractedText) extractedText.style.display = 'none';
+            progressFill.style.width = '0%';
+            
+            if (isExpense) {
+                extractedExpenses = [];
+            } else {
+                extractedIncome = [];
+            }
+        }
+
+        // Rest of your existing functions (updateUserInfo, updateDashboard, etc.)
+        // ... (All your existing functions remain the same)
+
+        function updateUserInfo() {
+            document.getElementById('username').textContent = currentUser.name;
+            document.getElementById('user-avatar').textContent = currentUser.name.charAt(0).toUpperCase();
+            document.getElementById('welcome-user').textContent = currentUser.name;
+        }
+
+        function loadProfileData() {
+            document.getElementById('profile-name').textContent = currentUser.name;
+            document.getElementById('profile-email').textContent = currentUser.email;
+            document.getElementById('profile-avatar').textContent = currentUser.name.charAt(0).toUpperCase();
+            document.getElementById('profile-name-input').value = currentUser.name;
+            document.getElementById('profile-email-input').value = currentUser.email;
+        }
+
+        function updateDashboard() {
+            // Calculate totals
+            const totalExpenses = expenses.reduce((sum, expense) => sum + expense.amount, 0);
+            const totalIncome = income.reduce((sum, incomeItem) => sum + incomeItem.amount, 0);
+            const savings = totalIncome - totalExpenses;
+            
+            // Update dashboard values
+            document.getElementById('total-balance').textContent = `₹${savings.toFixed(2)}`;
+            document.getElementById('monthly-expenses').textContent = `₹${totalExpenses.toFixed(2)}`;
+            document.getElementById('monthly-income').textContent = `₹${totalIncome.toFixed(2)}`;
+            document.getElementById('monthly-savings').textContent = `₹${savings.toFixed(2)}`;
+            
+            // Update recent expenses
+            const recentExpensesContainer = document.getElementById('recent-expenses');
+            recentExpensesContainer.innerHTML = '';
+            
+            const recentExpenses = expenses.slice(-5).reverse();
+            
+            if (recentExpenses.length === 0) {
+                recentExpensesContainer.innerHTML = '<p>No expenses recorded yet.</p>';
+            } else {
+                recentExpenses.forEach(expense => {
+                    const expenseItem = document.createElement('div');
+                    expenseItem.className = 'expense-item';
+                    
+                    const categoryNames = {
+                        'food': 'Food & Dining',
+                        'transport': 'Transportation',
+                        'shopping': 'Shopping',
+                        'bills': 'Bills & Utilities',
+                        'entertainment': 'Entertainment',
+                        'health': 'Health & Fitness',
+                        'other': 'Other'
+                    };
+                    
+                    expenseItem.innerHTML = `
+                        <div class="expense-info">
+                            <div class="expense-name">${expense.description || 'Expense'}</div>
+                            <div class="expense-meta">${new Date(expense.date).toLocaleDateString()}</div>
+                            <span class="expense-category">${categoryNames[expense.category] || expense.category}</span>
+                        </div>
+                        <div class="expense-amount">₹${expense.amount.toFixed(2)}</div>
+                    `;
+                    
+                    recentExpensesContainer.appendChild(expenseItem);
+                });
+            }
+            
+            // Update recent income
+            const recentIncomeContainer = document.getElementById('recent-income');
+            recentIncomeContainer.innerHTML = '';
+            
+            const recentIncome = income.slice(-5).reverse();
+            
+            if (recentIncome.length === 0) {
+                recentIncomeContainer.innerHTML = '<p>No income recorded yet.</p>';
+            } else {
+                recentIncome.forEach(incomeItem => {
+                    const incomeElement = document.createElement('div');
+                    incomeElement.className = 'income-item';
+                    
+                    const categoryNames = {
+                        'salary': 'Salary',
+                        'freelance': 'Freelance',
+                        'investment': 'Investment',
+                        'business': 'Business',
+                        'gift': 'Gift',
+                        'other': 'Other'
+                    };
+                    
+                    incomeElement.innerHTML = `
+                        <div class="income-info">
+                            <div class="income-name">${incomeItem.description || 'Income'}</div>
+                            <div class="income-meta">${new Date(incomeItem.date).toLocaleDateString()}</div>
+                            <span class="income-category">${categoryNames[incomeItem.category] || incomeItem.category}</span>
+                        </div>
+                        <div class="income-amount">₹${incomeItem.amount.toFixed(2)}</div>
+                    `;
+                    
+                    recentIncomeContainer.appendChild(incomeElement);
+                });
+            }
+            
+            // Initialize dashboard chart
+            initializeDashboardChart();
+        }
+
+        function updateExpenseHistory() {
+            const allExpensesContainer = document.getElementById('all-expenses');
+            allExpensesContainer.innerHTML = '';
+            
+            if (expenses.length === 0) {
+                allExpensesContainer.innerHTML = '<p>No expenses recorded yet.</p>';
+            } else {
+                const sortedExpenses = [...expenses].reverse();
+                
+                sortedExpenses.forEach(expense => {
+                    const expenseItem = document.createElement('div');
+                    expenseItem.className = 'expense-item';
+                    
+                    const categoryNames = {
+                        'food': 'Food & Dining',
+                        'transport': 'Transportation',
+                        'shopping': 'Shopping',
+                        'bills': 'Bills & Utilities',
+                        'entertainment': 'Entertainment',
+                        'health': 'Health & Fitness',
+                        'other': 'Other'
+                    };
+                    
+                    expenseItem.innerHTML = `
+                        <div class="expense-info">
+                            <div class="expense-name">${expense.description || 'Expense'}</div>
+                            <div class="expense-meta">${new Date(expense.date).toLocaleDateString()}</div>
+                            <span class="expense-category">${categoryNames[expense.category] || expense.category}</span>
+                        </div>
+                        <div class="expense-amount">₹${expense.amount.toFixed(2)}</div>
+                    `;
+                    
+                    allExpensesContainer.appendChild(expenseItem);
+                });
+            }
+        }
+
+        function updateIncomeHistory() {
+            const allIncomeContainer = document.getElementById('all-income');
+            allIncomeContainer.innerHTML = '';
+            
+            if (income.length === 0) {
+                allIncomeContainer.innerHTML = '<p>No income recorded yet.</p>';
+            } else {
+                const sortedIncome = [...income].reverse();
+                
+                sortedIncome.forEach(incomeItem => {
+                    const incomeElement = document.createElement('div');
+                    incomeElement.className = 'income-item';
+                    
+                    const categoryNames = {
+                        'salary': 'Salary',
+                        'freelance': 'Freelance',
+                        'investment': 'Investment',
+                        'business': 'Business',
+                        'gift': 'Gift',
+                        'other': 'Other'
+                    };
+                    
+                    incomeElement.innerHTML = `
+                        <div class="income-info">
+                            <div class="income-name">${incomeItem.description || 'Income'}</div>
+                            <div class="income-meta">${new Date(incomeItem.date).toLocaleDateString()}</div>
+                            <span class="income-category">${categoryNames[incomeItem.category] || incomeItem.category}</span>
+                        </div>
+                        <div class="income-amount">₹${incomeItem.amount.toFixed(2)}</div>
+                    `;
+                    
+                    allIncomeContainer.appendChild(incomeElement);
+                });
+            }
+        }
+
+        function updateGoals() {
+            const goalsList = document.getElementById('goals-list');
+            goalsList.innerHTML = '';
+            
+            if (goals.length === 0) {
+                goalsList.innerHTML = '<p>No goals set yet. Create your first financial goal!</p>';
+            } else {
+                goals.forEach(goal => {
+                    const goalItem = document.createElement('div');
+                    goalItem.className = 'card';
+                    
+                    const progress = (goal.currentAmount / goal.targetAmount) * 100;
+                    const daysLeft = Math.ceil((new Date(goal.targetDate) - new Date()) / (1000 * 60 * 60 * 24));
+                    
+                    goalItem.innerHTML = `
+                        <h4>${goal.name}</h4>
+                        <div style="margin: 15px 0;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                                <span>₹${goal.currentAmount.toFixed(2)} of ₹${goal.targetAmount.toFixed(2)}</span>
+                                <span>${progress.toFixed(1)}%</span>
+                            </div>
+                            <div style="height: 10px; background: var(--light-gray); border-radius: 5px; overflow: hidden;">
+                                <div style="height: 100%; width: ${progress}%; background: var(--gradient);"></div>
+                            </div>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; color: var(--gray); font-size: 0.9rem;">
+                            <span>Target: ${new Date(goal.targetDate).toLocaleDateString()}</span>
+                            <span>${daysLeft} days left</span>
+                        </div>
+                    `;
+                    
+                    goalsList.appendChild(goalItem);
+                });
+            }
+        }
+
+        function updateReminders() {
+            const upcomingReminders = document.getElementById('upcoming-reminders');
+            upcomingReminders.innerHTML = '';
+            
+            if (reminders.length === 0) {
+                upcomingReminders.innerHTML = '<p>No reminders set yet.</p>';
+            } else {
+                // Sort reminders by date
+                const sortedReminders = [...reminders].sort((a, b) => new Date(a.date) - new Date(b.date));
+                
+                sortedReminders.forEach(reminder => {
+                    const reminderItem = document.createElement('div');
+                    reminderItem.className = 'card';
+                    
+                    const daysUntil = Math.ceil((new Date(reminder.date) - new Date()) / (1000 * 60 * 60 * 24));
+                    let statusText = '';
+                    let statusColor = '';
+                    
+                    if (daysUntil < 0) {
+                        statusText = 'Overdue';
+                        statusColor = 'var(--danger)';
+                    } else if (daysUntil === 0) {
+                        statusText = 'Due today';
+                        statusColor = 'var(--warning)';
+                    } else if (daysUntil <= 7) {
+                        statusText = `Due in ${daysUntil} days`;
+                        statusColor = 'var(--warning)';
+                    } else {
+                        statusText = `Due in ${daysUntil} days`;
+                        statusColor = 'var(--success)';
+                    }
+                    
+                    reminderItem.innerHTML = `
+                        <div style="display: flex; justify-content: between; align-items: center;">
+                            <div style="flex: 1;">
+                                <h4>${reminder.title}</h4>
+                                <p style="margin: 5px 0; color: var(--gray);">${new Date(reminder.date).toLocaleDateString()}</p>
+                                ${reminder.amount > 0 ? `<p style="font-weight: 600;">₹${reminder.amount.toFixed(2)}</p>` : ''}
+                            </div>
+                            <span style="color: ${statusColor}; font-weight: 600;">${statusText}</span>
+                        </div>
+                    `;
+                    
+                    upcomingReminders.appendChild(reminderItem);
+                });
+            }
+        }
+
+        function updateBudgetProgress() {
+            const budgetProgress = document.getElementById('budget-progress');
+            budgetProgress.innerHTML = '';
+            
+            if (budget.total === 0) {
+                budgetProgress.innerHTML = '<p>Set a budget to see your progress here.</p>';
+                return;
+            }
+            
+            const totalExpenses = expenses.reduce((sum, expense) => sum + expense.amount, 0);
+            const progress = (totalExpenses / budget.total) * 100;
+            const remaining = budget.total - totalExpenses;
+            
+            let statusText = '';
+            let statusColor = '';
+            
+            if (progress >= 100) {
+                statusText = 'Budget exceeded';
+                statusColor = 'var(--danger)';
+            } else if (progress >= 80) {
+                statusText = 'Approaching limit';
+                statusColor = 'var(--warning)';
+            } else {
+                statusText = 'On track';
+                statusColor = 'var(--success)';
+            }
+            
+            budgetProgress.innerHTML = `
+                <div style="margin-bottom: 20px;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                        <span>Budget: ₹${budget.total.toFixed(2)}</span>
+                        <span>Spent: ₹${totalExpenses.toFixed(2)}</span>
+                    </div>
+                    <div style="height: 10px; background: var(--light-gray); border-radius: 5px; overflow: hidden;">
+                        <div style="height: 100%; width: ${Math.min(progress, 100)}%; background: ${statusColor};"></div>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-top: 5px; font-size: 0.9rem; color: var(--gray);">
+                        <span>${progress.toFixed(1)}%</span>
+                        <span>₹${remaining.toFixed(2)} remaining</span>
+                    </div>
+                </div>
+                <div style="text-align: center; padding: 10px; background: ${statusColor === 'var(--danger)' ? 'rgba(244, 67, 54, 0.1)' : statusColor === 'var(--warning)' ? 'rgba(255, 152, 0, 0.1)' : 'rgba(76, 175, 80, 0.1)'}; border-radius: 5px; color: ${statusColor};">
+                    ${statusText}
+                </div>
+            `;
+        }
+
+        function updateBankStatus() {
+            // Update bank connection status
+            bankAccounts.forEach(account => {
+                const statusElement = document.getElementById(`${account.id}-status`);
+                const buttonElement = document.getElementById(`${account.id}-btn`);
+                
+                if (statusElement) {
+                    if (account.connected) {
+                        statusElement.textContent = 'Connected';
+                        statusElement.className = 'bank-status connected';
+                        if (buttonElement) {
+                            buttonElement.textContent = 'Sync Now';
+                            buttonElement.className = 'btn btn-outline';
+                        }
+                    } else {
+                        statusElement.textContent = 'Not Connected';
+                        statusElement.className = 'bank-status';
+                        if (buttonElement) {
+                            buttonElement.textContent = 'Connect';
+                            buttonElement.className = 'btn';
+                        }
+                    }
+                }
+            });
+        }
+
+        function toggleBankConnection(bankId) {
+            const account = bankAccounts.find(acc => acc.id === bankId);
+            if (account) {
+                account.connected = !account.connected;
+                localStorage.setItem('bankAccounts', JSON.stringify(bankAccounts));
+                updateBankStatus();
+                
+                if (account.connected) {
+                    showNotification('success', 'Bank Connected', `${account.name} has been successfully connected.`);
+                    
+                    // Simulate importing transactions
+                    setTimeout(() => {
+                        showNotification('info', 'Transactions Imported', `5 new transactions imported from ${account.name}.`);
+                    }, 1500);
+                } else {
+                    showNotification('warning', 'Bank Disconnected', `${account.name} has been disconnected.`);
+                }
+            }
+        }
+
+        function startVoiceInput(type) {
+            const voiceBtn = type === 'expense' ? document.getElementById('voice-btn') : document.getElementById('income-voice-btn');
+            const voiceStatus = type === 'expense' ? document.getElementById('voice-status') : document.getElementById('income-voice-status');
+            
+            // Check if browser supports speech recognition
+            if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+                voiceStatus.textContent = 'Speech recognition not supported in this browser';
+                return;
+            }
+            
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            const recognition = new SpeechRecognition();
+            
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            recognition.lang = 'en-IN';
+            
+            voiceBtn.classList.add('listening');
+            voiceStatus.textContent = 'Listening...';
+            
+            recognition.start();
+            
+            recognition.onresult = function(event) {
+                const transcript = event.results[0][0].transcript;
+                voiceStatus.textContent = 'Processing...';
+                
+                // Process the transcript based on type
+                if (type === 'expense') {
+                    processExpenseVoiceInput(transcript);
+                } else {
+                    processIncomeVoiceInput(transcript);
+                }
+                
+                voiceBtn.classList.remove('listening');
+            };
+            
+            recognition.onerror = function(event) {
+                voiceStatus.textContent = 'Error occurred in recognition: ' + event.error;
+                voiceBtn.classList.remove('listening');
+            };
+            
+            recognition.onend = function() {
+                voiceBtn.classList.remove('listening');
+                if (voiceStatus.textContent === 'Listening...') {
+                    voiceStatus.textContent = 'Click to record your ' + type;
+                }
+            };
+        }
+
+        function processExpenseVoiceInput(transcript) {
+            document.getElementById('voice-transcript').style.display = 'block';
+            document.getElementById('voice-transcript').textContent = `You said: "${transcript}"`;
+            
+            // Simple parsing for demonstration
+            // In a real app, you would use more sophisticated NLP
+            const amountMatch = transcript.match(/\d+(\.\d{1,2})?/);
+            let category = 'other';
+            
+            if (transcript.toLowerCase().includes('food') || transcript.toLowerCase().includes('restaurant') || transcript.toLowerCase().includes('lunch') || transcript.toLowerCase().includes('dinner')) {
+                category = 'food';
+            } else if (transcript.toLowerCase().includes('transport') || transcript.toLowerCase().includes('bus') || transcript.toLowerCase().includes('train') || transcript.toLowerCase().includes('fuel')) {
+                category = 'transport';
+            } else if (transcript.toLowerCase().includes('shopping') || transcript.toLowerCase().includes('buy') || transcript.toLowerCase().includes('purchase')) {
+                category = 'shopping';
+            } else if (transcript.toLowerCase().includes('bill') || transcript.toLowerCase().includes('electricity') || transcript.toLowerCase().includes('water') || transcript.toLowerCase().includes('internet')) {
+                category = 'bills';
+            }
+            
+            if (amountMatch) {
+                document.getElementById('expense-amount').value = parseFloat(amountMatch[0]);
+            }
+            
+            document.getElementById('expense-category').value = category;
+            document.getElementById('expense-description').value = transcript;
+            
+            document.getElementById('voice-status').textContent = 'Voice input processed';
+        }
+
+        function processIncomeVoiceInput(transcript) {
+            document.getElementById('income-voice-transcript').style.display = 'block';
+            document.getElementById('income-voice-transcript').textContent = `You said: "${transcript}"`;
+            
+            // Simple parsing for demonstration
+            const amountMatch = transcript.match(/\d+(\.\d{1,2})?/);
+            let category = 'other';
+            
+            if (transcript.toLowerCase().includes('salary') || transcript.toLowerCase().includes('pay')) {
+                category = 'salary';
+            } else if (transcript.toLowerCase().includes('freelance') || transcript.toLowerCase().includes('contract')) {
+                category = 'freelance';
+            } else if (transcript.toLowerCase().includes('investment') || transcript.toLowerCase().includes('dividend') || transcript.toLowerCase().includes('stock')) {
+                category = 'investment';
+            } else if (transcript.toLowerCase().includes('business')) {
+                category = 'business';
+            } else if (transcript.toLowerCase().includes('gift')) {
+                category = 'gift';
+            }
+            
+            if (amountMatch) {
+                document.getElementById('income-amount').value = parseFloat(amountMatch[0]);
+            }
+            
+            document.getElementById('income-category').value = category;
+            document.getElementById('income-description').value = transcript;
+            
+            document.getElementById('income-voice-status').textContent = 'Voice input processed';
+        }
+
+        function checkBudgetAlerts() {
+            if (budget.total === 0) return;
+            
+            const totalExpenses = expenses.reduce((sum, expense) => sum + expense.amount, 0);
+            const progress = (totalExpenses / budget.total) * 100;
+            
+            if (progress >= 90) {
+                showNotification('danger', 'Budget Alert', `You've spent ${progress.toFixed(1)}% of your monthly budget!`);
+            } else if (progress >= 75) {
+                showNotification('warning', 'Budget Alert', `You've spent ${progress.toFixed(1)}% of your monthly budget.`);
+            }
+        }
+
+        function checkUnusualSpending(expense) {
+            // Flag any expense over ₹5000 as unusual
+            if (expense.amount > 5000) {
+                showNotification('danger', 'Unusual Spending', `Large transaction detected: ₹${expense.amount.toFixed(2)} for ${expense.description || 'expense'}`);
+            }
+        }
+
+        function showNotification(type, title, message) {
+            const notificationContainer = document.getElementById('notification-container');
+            
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            
+            const icons = {
+                'success': 'fas fa-check-circle',
+                'warning': 'fas fa-exclamation-triangle',
+                'danger': 'fas fa-exclamation-circle',
+                'info': 'fas fa-info-circle'
+            };
+            
+            notification.innerHTML = `
+                <div class="notification-icon">
+                    <i class="${icons[type] || 'fas fa-info-circle'}"></i>
+                </div>
+                <div class="notification-content">
+                    <div class="notification-title">${title}</div>
+                    <div class="notification-message">${message}</div>
+                </div>
+                <button class="notification-close">
+                    <i class="fas fa-times"></i>
+                </button>
+            `;
+            
+            notificationContainer.appendChild(notification);
+            
+            // Update notification count
+            const notificationCount = document.getElementById('notification-count');
+            notificationCount.textContent = parseInt(notificationCount.textContent) + 1;
+            
+            // Auto remove after 5 seconds
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.style.opacity = '0';
+                    notification.style.transform = 'translateX(100%)';
+                    setTimeout(() => {
+                        if (notification.parentNode) {
+                            notification.parentNode.removeChild(notification);
+                            notificationCount.textContent = Math.max(0, parseInt(notificationCount.textContent) - 1);
+                        }
+                    }, 300);
+                }
+            }, 5000);
+            
+            // Close button functionality
+            const closeButton = notification.querySelector('.notification-close');
+            closeButton.addEventListener('click', function() {
+                notification.style.opacity = '0';
+                notification.style.transform = 'translateX(100%)';
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        notification.parentNode.removeChild(notification);
+                        notificationCount.textContent = Math.max(0, parseInt(notificationCount.textContent) - 1);
+                    }
+                }, 300);
+            });
+        }
+
+        function initializeDashboardChart() {
+            const ctx = document.getElementById('dashboard-category-chart').getContext('2d');
+            
+            // Calculate category totals
+            const categoryTotals = {};
+            expenses.forEach(expense => {
+                if (categoryTotals[expense.category]) {
+                    categoryTotals[expense.category] += expense.amount;
+                } else {
+                    categoryTotals[expense.category] = expense.amount;
+                }
+            });
+            
+            const categories = Object.keys(categoryTotals);
+            const amounts = Object.values(categoryTotals);
+            
+            // Destroy existing chart if it exists
+            if (charts.dashboardCategory) {
+                charts.dashboardCategory.destroy();
+            }
+            
+            if (categories.length === 0) {
+                ctx.font = "16px Arial";
+                ctx.fillStyle = "#6C757D";
+                ctx.textAlign = "center";
+                ctx.fillText("No expense data available", ctx.canvas.width / 2, ctx.canvas.height / 2);
+                return;
+            }
+            
+            charts.dashboardCategory = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: categories.map(cat => {
+                        const names = {
+                            'food': 'Food & Dining',
+                            'transport': 'Transportation',
+                            'shopping': 'Shopping',
+                            'bills': 'Bills & Utilities',
+                            'entertainment': 'Entertainment',
+                            'health': 'Health & Fitness',
+                            'other': 'Other'
+                        };
+                        return names[cat] || cat;
+                    }),
+                    datasets: [{
+                        data: amounts,
+                        backgroundColor: [
+                            '#2E86AB',
+                            '#1B5299',
+                            '#A23B72',
+                            '#4CAF50',
+                            '#FF9800',
+                            '#F44336',
+                            '#6C757D'
+                        ],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        }
+
+        function initializeCharts() {
+            // Category Chart
+            const categoryCtx = document.getElementById('categoryChart').getContext('2d');
+            
+            // Calculate category totals
+            const categoryTotals = {};
+            expenses.forEach(expense => {
+                if (categoryTotals[expense.category]) {
+                    categoryTotals[expense.category] += expense.amount;
+                } else {
+                    categoryTotals[expense.category] = expense.amount;
+                }
+            });
+            
+            const categories = Object.keys(categoryTotals);
+            const amounts = Object.values(categoryTotals);
+            
+            // Destroy existing chart if it exists
+            if (charts.category) {
+                charts.category.destroy();
+            }
+            
+            if (categories.length === 0) {
+                categoryCtx.font = "16px Arial";
+                categoryCtx.fillStyle = "#6C757D";
+                categoryCtx.textAlign = "center";
+                categoryCtx.fillText("No expense data available", categoryCtx.canvas.width / 2, categoryCtx.canvas.height / 2);
+            } else {
+                charts.category = new Chart(categoryCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: categories.map(cat => {
+                            const names = {
+                                'food': 'Food & Dining',
+                                'transport': 'Transportation',
+                                'shopping': 'Shopping',
+                                'bills': 'Bills & Utilities',
+                                'entertainment': 'Entertainment',
+                                'health': 'Health & Fitness',
+                                'other': 'Other'
+                            };
+                            return names[cat] || cat;
+                        }),
+                        datasets: [{
+                            label: 'Amount (₹)',
+                            data: amounts,
+                            backgroundColor: '#2E86AB',
+                            borderColor: '#1B5299',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+            }
+            
+            // Monthly Chart
+            const monthlyCtx = document.getElementById('monthlyChart').getContext('2d');
+            
+            // Calculate monthly totals (simplified)
+            const monthlyTotals = {
+                'Jul': 8500,
+                'Aug': 9200,
+                'Sep': 11000,
+                'Oct': amounts.reduce((a, b) => a + b, 0)
+            };
+            
+            // Destroy existing chart if it exists
+            if (charts.monthly) {
+                charts.monthly.destroy();
+            }
+            
+            charts.monthly = new Chart(monthlyCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Jul', 'Aug', 'Sep', 'Oct'],
+                    datasets: [{
+                        label: 'Monthly Spending (₹)',
+                        data: Object.values(monthlyTotals),
+                        backgroundColor: 'rgba(46, 134, 171, 0.1)',
+                        borderColor: '#2E86AB',
+                        borderWidth: 2,
+                        tension: 0.3,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+            
+            // Income vs Expense Chart
+            const incomeExpenseCtx = document.getElementById('incomeExpenseChart').getContext('2d');
+            
+            // Destroy existing chart if it exists
+            if (charts.incomeExpense) {
+                charts.incomeExpense.destroy();
+            }
+            
+            const incomeTotal = income.reduce((sum, incomeItem) => sum + incomeItem.amount, 0);
+            const expenseTotal = expenses.reduce((sum, expense) => sum + expense.amount, 0);
+            
+            charts.incomeExpense = new Chart(incomeExpenseCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Current Month'],
+                    datasets: [
+                        {
+                            label: 'Income',
+                            data: [incomeTotal],
+                            backgroundColor: '#4CAF50'
+                        },
+                        {
+                            label: 'Expenses',
+                            data: [expenseTotal],
+                            backgroundColor: '#F44336'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        function initializeBudgetChart() {
+            const ctx = document.getElementById('budgetChart').getContext('2d');
+            
+            // Destroy existing chart if it exists
+            if (charts.budget) {
+                charts.budget.destroy();
+            }
+            
+            if (budget.total === 0) {
+                ctx.font = "16px Arial";
+                ctx.fillStyle = "#6C757D";
+                ctx.textAlign = "center";
+                ctx.fillText("Set a budget to see visualization", ctx.canvas.width / 2, ctx.canvas.height / 2);
+                return;
+            }
+            
+            const expenseTotal = expenses.reduce((sum, expense) => sum + expense.amount, 0);
+            
+            charts.budget = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Spent', 'Remaining'],
+                    datasets: [{
+                        data: [expenseTotal, Math.max(0, budget.total - expenseTotal)],
+                        backgroundColor: ['#F44336', '#4CAF50'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        }
+
+        function initializeChatbot() {
+            const chatbotMessages = document.getElementById('chatbot-messages');
+            const chatbotInput = document.getElementById('chatbot-input');
+            const sendButton = document.getElementById('send-message');
+            const typingIndicator = document.getElementById('typing-indicator');
+            
+            sendButton.addEventListener('click', sendMessage);
+            chatbotInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    sendMessage();
+                }
+            });
+            
+            function sendMessage() {
+                const message = chatbotInput.value.trim();
+                if (!message) return;
+                
+                // Add user message
+                addMessage(message, 'user');
+                chatbotInput.value = '';
+                
+                // Show typing indicator
+                typingIndicator.style.display = 'flex';
+                
+                // Simulate AI response after a delay
+                setTimeout(() => {
+                    typingIndicator.style.display = 'none';
+                    const response = generateAIResponse(message);
+                    addMessage(response, 'bot');
+                    
+                    // Scroll to bottom
+                    chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+                }, 1500);
+            }
+            
+            function addMessage(text, sender) {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `message ${sender}-message`;
+                messageDiv.textContent = text;
+                chatbotMessages.appendChild(messageDiv);
+                
+                // Scroll to bottom
+                chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+            }
+            
+            function generateAIResponse(userMessage) {
+                const lowerMessage = userMessage.toLowerCase();
+                const expenseTotal = expenses.reduce((sum, expense) => sum + expense.amount, 0);
+                const incomeTotal = income.reduce((sum, incomeItem) => sum + incomeItem.amount, 0);
+                const savings = incomeTotal - expenseTotal;
+                
+                if (lowerMessage.includes('budget') || lowerMessage.includes('spending')) {
+                    if (budget.total === 0) {
+                        return "I notice you haven't set a budget yet. Setting a monthly budget is the first step to financial control. Would you like me to help you create one?";
+                    } else {
+                        const progress = (expenseTotal / budget.total) * 100;
+                        if (progress >= 90) {
+                            return `You've spent ₹${expenseTotal.toFixed(2)} of your ₹${budget.total.toFixed(2)} budget (${progress.toFixed(1)}%). This is above 90% of your budget. Consider reducing discretionary spending for the rest of the month.`;
+                        } else if (progress >= 75) {
+                            return `You've spent ₹${expenseTotal.toFixed(2)} of your ₹${budget.total.toFixed(2)} budget (${progress.toFixed(1)}%). You're approaching your budget limit. Try to be mindful of your spending for the rest of the month.`;
+                        } else {
+                            return `You've spent ₹${expenseTotal.toFixed(2)} of your ₹${budget.total.toFixed(2)} budget (${progress.toFixed(1)}%). You're on track with your budget. Keep up the good financial habits!`;
+                        }
+                    }
+                } else if (lowerMessage.includes('save') || lowerMessage.includes('savings')) {
+                    if (savings > 0) {
+                        return `You've saved ₹${savings.toFixed(2)} this month. That's a savings rate of ${((savings / incomeTotal) * 100).toFixed(1)}%. Consider putting at least 20% of this into an emergency fund or investments.`;
+                    } else {
+                        return "I notice your expenses are exceeding your income this month. Let's work on reducing discretionary spending. Would you like me to suggest areas where you can cut back?";
+                    }
+                } else if (lowerMessage.includes('invest') || lowerMessage.includes('investment')) {
+                    return "For someone with your financial profile in India, I'd recommend starting with a balanced portfolio: 50% in equity mutual funds, 30% in debt funds, and 20% in a liquid emergency fund. Consider consulting with a financial advisor for personalized advice.";
+                } else if (lowerMessage.includes('debt') || lowerMessage.includes('loan')) {
+                    return "If you have high-interest debt (like credit cards), focus on paying that off first before investing. The avalanche method (paying off highest interest debt first) could save you more money in the long run.";
+                } else if (lowerMessage.includes('category') || lowerMessage.includes('categor')) {
+                    // Calculate largest spending category
+                    const categoryTotals = {};
+                    expenses.forEach(expense => {
+                        if (categoryTotals[expense.category]) {
+                            categoryTotals[expense.category] += expense.amount;
+                        } else {
+                            categoryTotals[expense.category] = expense.amount;
+                        }
+                    });
+                    
+                    if (Object.keys(categoryTotals).length === 0) {
+                        return "You haven't recorded any expenses yet. Start tracking your spending to get insights into your financial habits.";
+                    }
+                    
+                    const largestCategory = Object.keys(categoryTotals).reduce((a, b) => categoryTotals[a] > categoryTotals[b] ? a : b);
+                    const categoryNames = {
+                        'food': 'Food & Dining',
+                        'transport': 'Transportation',
+                        'shopping': 'Shopping',
+                        'bills': 'Bills & Utilities',
+                        'entertainment': 'Entertainment',
+                        'health': 'Health & Fitness',
+                        'other': 'Other'
+                    };
+                    
+                    const percentage = (categoryTotals[largestCategory] / expenseTotal) * 100;
+                    return `Your largest spending category is ${categoryNames[largestCategory] || largestCategory} at ${percentage.toFixed(1)}% of your total expenses. Consider setting a stricter budget for this category to improve your savings rate.`;
+                } else {
+                    return "I'd be happy to help with that! Could you provide more details about your financial question? I can assist with budgeting, saving strategies, investment advice, debt management, or analyzing your spending patterns.";
+                }
+            }
+        }
+    </script>
+</body>
+</html>
